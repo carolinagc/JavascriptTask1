@@ -1,16 +1,17 @@
 <!DOCTYPE html>
 <html>
-<head>
-<title>rectangles.html</title>
-<script type="text/javascript">
+  <head>
+ <link rel="shortcut icon" type="image/png" href="lib/jasmine-2.1.3/jasmine_favicon.png">
+  <link rel="stylesheet" href="jasmine/lib/jasmine-2.1.3/jasmine.css">
 
+  <script src="jasmine/lib/jasmine-2.1.3/jasmine.js"></script>
+  <script src="jasmine/lib/jasmine-2.1.3/jasmine-html.js"></script>
+  <script src="jasmine/lib/jasmine-2.1.3/boot.js"></script>
+  <script src="task.js"></script>
 
-var	nRectangles = 3,
-	containerWidth = 600,
-	containerHeight = 600,
-	minRectDim = 50,
-	maxRectDim = 100;
-
+    <title>rectangles.html</title>
+    <script type="text/javascript">
+      
 /*
 Specifications:
 
@@ -59,9 +60,10 @@ Further notes:
 </script>
 <!-- If using a framework, please insert <script src> here -->
 </head>
-<body><!-- 
+<body onload='main()'><!-- 
 
 	No HTML here! Everything must be written in JavaScript.
 	
 --></body>
+
 </html>
