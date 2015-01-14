@@ -1,4 +1,4 @@
-var	nRectangles     = 3;
+var nRectangles     = 3;
 var containerWidth  = 600;
 var containerHeight = 600;
 var containerId     = "container";
@@ -10,7 +10,7 @@ function main(){
     setDiv(containerId, containerWidth, containerHeight);
     for(i=0; i<nRectangles; i++){
         setCanvasRect("rect"+i,setWidthRect(), setHeightRect());   
-      }
+    }
 }
 
 
@@ -31,25 +31,47 @@ function setCanvasRect(id,width, height) {
     var canvasR = document.createElement("canvas");
     ctx = canvasR.getContext("2d");
     ctx.canvas.id = id;
-
-    // Set canvas size
     setSize(ctx,width, height);
 
     //Set canvas position
-    setPos(ctx);
+    x = randomize(0,containerWidth-maxRectDim);
+    y =  randomize(0,containerWidth-maxRectDim);
+    setPos(ctx,x,y);
     document.getElementById(containerId).appendChild(canvasR); // adds the canvas to #div
 
-    //draw rectangle
-    drawRectangle(id, width, height);
+    //Store canvas  in Array
+    var rect = [x,y,width, height];
+    rectangles.push(rect);   
+    //    var c = storeCanvas(x,y,width,height);
+    
+    //Check if canvas is overlapping
+    if (isOverlapping(rect, rectangles)) {
+        resetPos(ctx,x,y);
+        //draw rectangle
+        console.log("setPos re calculated")
+        //drawRectangle(id, width, height);
+    } else {
+        //draw rectangle
+        drawRectangle(id, width, height);
+    }
+
 
 }
 
-function setPos(context) {
-    x = randomize(0,containerWidth-maxRectDim);
-    y =  randomize(0,containerWidth-maxRectDim);
+function onMouseOver(e) {
+    event.target.style.color = setColor();
+    alert("MOUSE");
+
+}
+
+function resetPos(context,x,y) {
+
+}
+
+function setPos(context,x,y) {
     ctx.canvas.style.position = "absolute";
-    ctx.canvas.style.top = x + "px";
-    ctx.canvas.style.left = y + "px";
+    ctx.canvas.style.top = y + "px";
+    ctx.canvas.style.left = x + "px";
 }
 
 function setSize(context,width, height) {
@@ -57,20 +79,19 @@ function setSize(context,width, height) {
     ctx.canvas.height = height;
 }
 
-function storeRect(x,y,width,height) {
+function storeCanvas(x,y,width,height) {
     var rect = [x,y,width, height];
     rectangles.push(rect);   
-    console.log("rect", rect);
+    return rect;
 }
 
 function drawRectangle(id,width,height) {
-    var r_canvas = document.getElementById(id);
-    var r_context = r_canvas.getContext("2d");
+    r_canvas = document.getElementById(id);
+    r_context = r_canvas.getContext("2d");
     r_context.fillStyle = setColor(); 
     r_context.fillRect(0,0,width, height);
 
-    //Store rect  in Array
-    storeRect(x,y,width,height);
+    console.log(id, x,y,width,height);
 
 }
 
@@ -102,29 +123,38 @@ function randomize(max,min) {
 
 
 function intersects (rect1, rect2) {
-    var x1  = rect1[0], 
+    x1  = rect1[0], 
     y1 = rect1[1], 
     w1 = rect1[2],
     h1 = rect1[3]
 
-    var x2  = rect2[0],
+    x2  = rect2[0],
     y2 = rect2[1],
     w2 = rect2[2],
     h2 = rect2[3]
 
     if (x1+w1<x2 || x2+w2<x1 || y1+h1<y2 || y2+h2<y1){
-        //        alert("No intersection");
         return false;        
     } else {
-        //        alert("Intersection");
         return true;
     }
+
 }
 
-function avoidOverlapping(myNewRect, rectangles) {
-    for(var i = 0, r; r = rectangles[i]; i++) {
-        console.log("RECTANGLES", rectangles);
-        if (intersects(myNewRect, r))
-            console.log("rectangles overlap");
+function isOverlapping(myNewRect, rectangles) {
+    if (rectangles.length == 1) { return false } 
+    if (rectangles.length == 2 && intersects(myNewRect, rectangles[0])) {
+        console.log("intersection", myNewRect, rectangles[0]);
+        return true;
     }
+    if (rectangles.length === 3) {
+        if (intersects(myNewRect, rectangles[0]) || intersects(myNewRect, rectangles[1])) {
+            console.log("intersection r2, r0",myNewRect, rectangles[0]);
+            console.log("intersection r2, r1", myNewRect, rectangles[1]);
+            return true;
+        }
+    }
+    
+    return false;
+
 }
