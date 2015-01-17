@@ -6,43 +6,41 @@ var minRectDim      = 50;
 var maxRectDim      = 100;
 var rectangles      = {};
 
-function main(){
+function main() {
     setDiv(containerId, containerWidth, containerHeight);
     for(i=0; i<nRectangles; i++){
-        var width = setWidthRect();
+        var width  = setWidthRect();
         var height = setHeightRect();
         var id     = "rect" + i;
-
-        setCanvasRect(id, width,height );   
+        drawCanvasRect(id, width,height );   
     }
 }
 
-
 function setDiv(id,width, height) {
     var div = document.createElement("div");
-    div.id = id;
-    div.style.width = width + "px";
-    div.style.height = height + "px";
-//    div.style.backgroundColor = "green";
-    div.style.position = "absolute";
-    div.style.top = 0;
-    div.style.left = 0
+        div.id = id;
+        div.style.width = width + "px";
+        div.style.height = height + "px";
+        div.style.position = "absolute";
+        div.style.top = 0;
+        div.style.left = 0;
+
     document.body.appendChild(div);     
 }
 
+function drawCanvasRect(id,width, height) {
 
-function setCanvasRect(id,width, height) {
+    //Set canvas
     var canvasR = document.createElement("canvas");
     ctx = canvasR.getContext("2d");
     ctx.canvas.id = id;
-    //    canvasR.addEventListener('mouseover', onMouseOver,false);    
-
-    //Set canvas size
+    
+    var color = setColor();
+    
     setSize(ctx,width, height);
 
-    //Set canvas random position
-    x = randomize(0,containerWidth-maxRectDim);
-    y =  randomize(0,containerWidth-maxRectDim);
+    var x = randomize(0,containerWidth-maxRectDim);
+    var y =  randomize(0,containerWidth-maxRectDim);
     setPos(ctx,x,y);
     document.getElementById(containerId).appendChild(canvasR); // adds the canvas to #div
 
@@ -50,75 +48,96 @@ function setCanvasRect(id,width, height) {
     var rect = storeCanvas(id,x,y,width,height);
     
     //Check if canvas is overlapping
-    if (isOverlapping(rect, rectangles)) {
-        //option1
-        document.getElementById("container").style.visibility="hidden";
-        location.reload();
-        //option 2
-        var rect = storeCanvas(id,x,y,width,height);
-        //draw rectangle
-        console.log("setPos re calculated")
-        drawRectangle(id, width, height,setColor());
-    } else {
-        //draw rectangle
-        drawRectangle(id, width, height,setColor());
+
+    while (isOverlapping(id,rect,rectangles)) {
+        console.log("OVERLAPPING rectangles", id, rectangles[id])
+        delete rectangles[id];
+        console.log("Should remove last rectangle", rectangles)
+        var newCoord = resetPos(id);
+        rect = storeCanvas(id,newCoord[0],newCoord[1],width,height);
     }
     
-    document.getElementById(id).addEventListener('mouseover', function() {
-        drawRectangle(id, width, height,setColor());
-        console.log("MOUSE OVER")
-    })    
+    // Draw rectangle
+    drawRectangle(id,x,y, width, height, color);
 
+    document.getElementById(id).addEventListener('mouseover', function(e) {
+        var colorM = setColor();
+        drawRectangle(id,x,y, width, height,colorM);
+        mousePos = getMousePos(canvasR, e);
+        var mouseX = mousePos.x;
+        var mouseY = mousePos.y;
+        var onMouseOver = function(idR,ctxR,p,q,w,h) {
+            return function() {
+                if (mouseX>=0 && mouseY>=0) {
+                    alert("MOUSE IN")
+                    var newCoord = resetPos(idR);
+                    var rectM = storeCanvas(idR,newCoord[0],newCoord[1],width,height);
+                    while (isOverlapping(idR,rectM,rectangles)) {
+                        console.log("OVERLAPPING rectangles", id, rectangles[id])
+                        delete rectangles[idR];
+                        console.log("Should remove last rectangle", rectangles)
+                        var newCoord = resetPos(idR);
+                        rectM = storeCanvas(idR,newCoord[0],newCoord[1],width,height);
+                    }
+                        //draw rectangle
+                        drawRectangle(idR,p,q, w, h, colorM);
+                }
+            }
+        }
+
+        t = setTimeout(onMouseOver(id,ctx,x,y,width,height),3000);
+    }) // close mouseover
+
+    document.getElementById(id).addEventListener('mouseout', function(e) {
+        mousePos = getMousePos(canvasR, e);
+        var mouseX = mousePos.x;
+        var mouseY = mousePos.y;
+        clearTimeout(t);
+    });                               
+}    
+
+function getMousePos(canvas,e) {
+    var rect = canvas.getBoundingClientRect();
+    return {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+    };
 }
 
-function resetCoord(myNewRect,rect) {
-    var x1 = rect[0];
-    var w1 = rect[2];
-    var x2 = myNewRect[0];
-    var w2 = myNewRect[2];
-    x2 = x1+w1+1;
-    // check new position is inside container
-
-    if (x2>0 && x2+w2<600) {
-        ctx.canvas.style.left = x2 + "px";
-        ctx.canvas.style.top =  y + "px";
-    } else {
-        x2 = x1 - w2 - 1;
-        ctx.canvas.style.left = x2 + "px";
-        ctx.canvas.style.top =  y + "px";
-        console.log("no no")
-    }
-
+function resetPos(id) {
+    rCanvas  = document.getElementById(id);
+    ctxR = rCanvas.getContext("2d");
+    var x = randomize(0,containerWidth-maxRectDim);
+    var y =  randomize(0,containerWidth-maxRectDim);  
+    ctxR.canvas.style.position = "absolute";
+    ctxR.canvas.style.left = x + "px";
+    ctxR.canvas.style.top =  y + "px";
+    return [x,y]
 }
 
-function setPos(context,x,y) {
+function setPos(ctx,x,y) {
     ctx.canvas.style.position = "absolute";
     ctx.canvas.style.left = x + "px";
     ctx.canvas.style.top =  y + "px";
+    
 }
 
-function setSize(context,width, height) {
+function setSize(ctx,width, height) {
     ctx.canvas.width = width;
     ctx.canvas.height = height;
 }
 
 function storeCanvas(id,x,y,width,height) {
     var rect = [x,y,width, height];
-    rectangles[id]=rect;
-//    rectangles.push(rect);   
-    console.log("rectangles", rectangles)
+    rectangles[id] = rect;
     return rect;
 }
 
-function drawRectangle(id,width,height,color) {
-    r_canvas = document.getElementById(id);
+function drawRectangle(id,x,y,width,height,color) {
+    r_canvas  = document.getElementById(id);
     r_context = r_canvas.getContext("2d");
     r_context.fillStyle = color; 
-
     r_context.fillRect(0,0,width, height);
-
-    console.log(id, x,y,width,height);
-
 }
 
 function setColor() {
@@ -133,7 +152,6 @@ function setWidthRect() {
     if (width < minRectDim ) {width = minRectDim};
     if (width > maxRectDim ) {width = maxRectDim};
     return width;
-
 }
 
 function setHeightRect() {
@@ -147,7 +165,6 @@ function randomize(max,min) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-
 function intersects (myNewRect, rect) {
     x1 = rect[0], 
     y1 = rect[1], 
@@ -159,30 +176,38 @@ function intersects (myNewRect, rect) {
     w2 = myNewRect[2],
     h2 = myNewRect[3]
 
-    if (x1+w1<x2 || x2+w2<x1 || y1+h1<y2 || y2+h2<y1){
-        
+    if (x1+w1<x2 || x2+w2<x1 || y1+h1<y2 || y2+h2<y1) {
         return false;        
     } else {
-//        resetCoord(myNewRect,rect);
         return true;
     }
-
 }
 
-function isOverlapping(myNewRect, rectangles) {
-    var rectangles_length = Object.keys(rectangles).length
+function isOverlapping(id, myNewRect, rectangles) {
+    var rectangles_length = Object.keys(rectangles).length;
+    var intersection ;
+    if (rectangles_length === 1) { intersection = false};
+
     if (rectangles_length === 2 && intersects(myNewRect, rectangles.rect0)) {
         console.log("intersection", myNewRect, rectangles.rect0);
-        return true;
+        intersection = true;
     }
-    if (rectangles_length === 3) {
-      if (intersects(myNewRect, rectangles.rect0) || intersects(myNewRect, rectangles.rect1)) {
-          console.log("intersection r2, r0",myNewRect, rectangles[0]);
-          console.log("intersection r2, r1", myNewRect, rectangles[1]);
-          return true;
-      }
-    }
-    
-    return false;
 
+    if (rectangles_length === 3) {
+        switch(id) {
+        case "rect0":
+            intersection = (intersects(myNewRect, rectangles.rect1) || intersects(myNewRect, rectangles.rect2)) 
+            break;
+        case "rect1":
+            intersection = (intersects(myNewRect, rectangles.rect0) || intersects(myNewRect, rectangles.rect2));
+            break;
+        case "rect2":
+            intersection = (intersects(myNewRect, rectangles.rect0) || intersects(myNewRect, rectangles.rect1));
+            break;
+        }
+    }
+
+    return intersection;
+    
+    
 }
