@@ -51,7 +51,6 @@ function drawCanvasRect(id,width, height) {
 
     while (isOverlapping(id,rect,rectangles)) {
         delete rectangles[id];
-        console.log("Should remove last rectangle", rectangles)
         var newCoord = resetPos(id);
         rect = storeCanvas(id,newCoord[0],newCoord[1],width,height);
     }
@@ -65,20 +64,29 @@ function drawCanvasRect(id,width, height) {
         var colorM = setColor();
         drawRectangle(id,x,y, width, height,colorM);
         mousePos = getMousePos(canvasR, e);
+        // mouse position relative to canvas
         var mouseX = mousePos.x;
         var mouseY = mousePos.y;
         var onMouseOver = function(idR,ctxR,p,q,w,h) {
             return function() {
                 if (mouseX>=0 && mouseY>=0) {
-                    alert("MOUSE IN")
+//                    alert("MOUSE IN")
                     var newCoord = resetPos(idR);
+                    mousePos = getMousePos(canvasR, e);
+                    var mX = mousePos.x;
+                    var mY = mousePos.y;
                     var rectM = storeCanvas(idR,newCoord[0],newCoord[1],width,height);
 
                     //checking that after 3 sec rect is reposition and is not under cursor                 
-                    while (isOverlapping(idR,rectM,rectangles) && (newCoord[0]<mouseX || newCoord[1]<mouseY || newCoord[0]+width>mouseX || newCoord[1]>mouseY)) {
+
+                    while ((isOverlapping(idR,rectM,rectangles) || (mX>=0 && mY>=0))) {
                         delete rectangles[idR];
                         var newCoord = resetPos(idR);
                         rectM = storeCanvas(idR,newCoord[0],newCoord[1],width,height);
+                        mousePos = getMousePos(canvasR, e);
+                        mX = mousePos.x;
+                        mY = mousePos.y;
+
                     }
                         //draw rectangle
                         drawRectangle(idR,p,q, w, h, colorM);
@@ -192,12 +200,10 @@ function isOverlapping(id, myNewRect, rectangles) {
 
     var obj = {
         1: function(){
-            intersection = false;
-            return intersection;
+            return false;
         },
         2:function(){
-            intersection = (intersects(myNewRect, rectangles.rect0)) ;
-            return intersection;
+            return (intersects(myNewRect, rectangles.rect0)) ;
         },
         3: function() {
             switch(id) {
