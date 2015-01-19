@@ -50,12 +50,13 @@ function drawCanvasRect(id,width, height) {
     //Check if canvas is overlapping
 
     while (isOverlapping(id,rect,rectangles)) {
-        console.log("OVERLAPPING rectangles", id, rectangles[id])
         delete rectangles[id];
         console.log("Should remove last rectangle", rectangles)
         var newCoord = resetPos(id);
         rect = storeCanvas(id,newCoord[0],newCoord[1],width,height);
     }
+    
+    
     
     // Draw rectangle
     drawRectangle(id,x,y, width, height, color);
@@ -72,7 +73,8 @@ function drawCanvasRect(id,width, height) {
                     alert("MOUSE IN")
                     var newCoord = resetPos(idR);
                     var rectM = storeCanvas(idR,newCoord[0],newCoord[1],width,height);
-                   
+
+                    //checking that after 3 sec rect is reposition and is not under cursor                 
                     while (isOverlapping(idR,rectM,rectangles) && (newCoord[0]<mouseX || newCoord[1]<mouseY || newCoord[0]+width>mouseX || newCoord[1]>mouseY)) {
                         delete rectangles[idR];
                         var newCoord = resetPos(idR);
@@ -100,6 +102,7 @@ function getMousePos(canvas,e) {
     return {
         x: e.clientX - rect.left,
         y: e.clientY - rect.top
+
     };
 }
 
@@ -164,7 +167,7 @@ function randomize(max,min) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function intersects (myNewRect, rect) {
+function intersects(myNewRect, rect) {
     x1 = rect[0], 
     y1 = rect[1], 
     w1 = rect[2],
@@ -182,31 +185,35 @@ function intersects (myNewRect, rect) {
     }
 }
 
+
 function isOverlapping(id, myNewRect, rectangles) {
     var rectangles_length = Object.keys(rectangles).length;
     var intersection ;
-    if (rectangles_length === 1) { intersection = false};
 
-    if (rectangles_length === 2 && intersects(myNewRect, rectangles.rect0)) {
-        console.log("intersection", myNewRect, rectangles.rect0);
-        intersection = true;
-    }
-
-    if (rectangles_length === 3) {
-        switch(id) {
-        case "rect0":
-            intersection = (intersects(myNewRect, rectangles.rect1) || intersects(myNewRect, rectangles.rect2)) 
-            break;
-        case "rect1":
-            intersection = (intersects(myNewRect, rectangles.rect0) || intersects(myNewRect, rectangles.rect2));
-            break;
-        case "rect2":
-            intersection = (intersects(myNewRect, rectangles.rect0) || intersects(myNewRect, rectangles.rect1));
-            break;
+    var obj = {
+        1: function(){
+            intersection = false;
+            return intersection;
+        },
+        2:function(){
+            intersection = (intersects(myNewRect, rectangles.rect0)) ;
+            return intersection;
+        },
+        3: function() {
+            switch(id) {
+            case "rect0":
+                intersection = (intersects(myNewRect, rectangles.rect1) || intersects(myNewRect, rectangles.rect2)) 
+                break;
+            case "rect1":
+                intersection = (intersects(myNewRect, rectangles.rect0) || intersects(myNewRect, rectangles.rect2));
+                break;
+            case "rect2":
+                intersection = (intersects(myNewRect, rectangles.rect0) || intersects(myNewRect, rectangles.rect1));
+                break;
+            }
+            return intersection;
         }
     }
 
-    return intersection;
-    
-    
+    return obj[rectangles_length]();
 }
