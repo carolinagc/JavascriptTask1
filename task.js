@@ -72,10 +72,9 @@ function drawCanvasRect(id,width, height) {
                     alert("MOUSE IN")
                     var newCoord = resetPos(idR);
                     var rectM = storeCanvas(idR,newCoord[0],newCoord[1],width,height);
-                    while (isOverlapping(idR,rectM,rectangles)) {
-                        console.log("OVERLAPPING rectangles", id, rectangles[id])
+                   
+                    while (isOverlapping(idR,rectM,rectangles) && (newCoord[0]<mouseX || newCoord[1]<mouseY || newCoord[0]+width>mouseX || newCoord[1]>mouseY)) {
                         delete rectangles[idR];
-                        console.log("Should remove last rectangle", rectangles)
                         var newCoord = resetPos(idR);
                         rectM = storeCanvas(idR,newCoord[0],newCoord[1],width,height);
                     }
